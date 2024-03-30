@@ -1,8 +1,7 @@
 from pathlib import Path
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import os
-load_dotenv()
-import django_heroku
+#load_dotenv()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,7 +33,7 @@ INSTALLED_APPS = [
     'main',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -129,17 +128,23 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = True  # Uncomment for development only
 
-CORS_ALLOWED_HEADERS = [
-    'Content-Type',
-    'Authorization',  # Add other necessary headers from your frontend
-]
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+)
 
-CORS_ALLOWED_METHODS = [
-    'GET',
-    'POST',  # Add or remove methods as needed (PUT, DELETE, etc.)
-    'PUT',
-    'DELETE',
-]
+CORS_ALLOW_METHODS = (
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+)
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
@@ -170,4 +175,3 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'vnd.api+json'
 }
 
-django_heroku.settings(locals())
