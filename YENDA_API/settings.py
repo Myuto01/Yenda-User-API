@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'main',
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -44,6 +45,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'YENDA_API.urls'
@@ -118,6 +121,25 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",  # Allow requests from your development frontend
+]
+
+CORS_ALLOW_ALL_ORIGINS = True  # Uncomment for development only
+
+CORS_ALLOWED_HEADERS = [
+    'Content-Type',
+    'Authorization',  # Add other necessary headers from your frontend
+]
+
+CORS_ALLOWED_METHODS = [
+    'GET',
+    'POST',  # Add or remove methods as needed (PUT, DELETE, etc.)
+    'PUT',
+    'DELETE',
+]
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
