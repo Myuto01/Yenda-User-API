@@ -52,22 +52,27 @@ class RegistrationAPIView(APIView):
 
 class UserLogin(APIView):
     permission_classes = [AllowAnyPermission]
-	##
+
     def post(self, request):
         data = request.data
 
-        assert validate_username(data)
-        assert validate_password(data)
-
+        # Validate request data using serializer
         serializer = UserLoginSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
-            user = serializer.check_user(data)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+
+            # Authenticate user
+            user = authenticate(request, username=username, password=password)
+            if user:
+                # Authentication successful
+                return Response({'message': 'User authenticated successfully'}, status=status.HTTP_200_OK)
+            else:
+                # Authentication failed
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            print("Serializer errors:", serializer.errors)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            # Serializer validation failed
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserUpdateView(APIView):
     permission_classes = [IsAuthenticated]
