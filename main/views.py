@@ -51,25 +51,20 @@ class RegistrationAPIView(APIView):
                 return JsonResponse({'errors': errors}, status=400)  # Return JSON response with status code 400
 
 class UserLogin(APIView):
+    serializer_class = UserLoginSerializer
+
     permission_classes = [AllowAnyPermission]
 
     def post(self, request):
-        data = request.data
-
         # Validate request data using serializer
-        serializer = UserLoginSerializer(data=data)
+        serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
-
             # Authenticate user
-            user = authenticate(request, username=username, password=password)
+            user = authenticate( username = serializer.data['username'],  password = serializer.data['password'])
             if user:
-                # Authentication successful
-                return Response({'message': 'User authenticated successfully'}, status=status.HTTP_200_OK)
-            else:
-                # Authentication failed
-                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+                    token, created = Token.objects.get_or_create(user=user)
+                    return Response({'token': [token.key], "Sucsses":"Login SucssesFully"}, status=status.HTTP_201_CREATED )
+            return Response({'Massage': 'Invalid Username and Password'}, status=401)
         else:
             # Serializer validation failed
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
