@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Log in</title>
+</head>
+<body>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login Page</title>
+    </head>
+    <body>
+            <div class="right">
+                <form method="post"  id="login_form">
+                    {% csrf_token %}
+                    <!-- Your form fields go here -->
+                    <div class="input-container username">
+                        <label for="id_username">Username</label>
+                        <input id="id_username" name="username" type="text" required>
+                    </div>
+                    <div class="input-container password">
+                        <label for="id_password">Password</label>
+                        <input id="id_password" name="password" type="password" required>
+                        <i class="far fa-eye-slash"></i>
+                    </div>
+                    <button class="signup-btn" type="submit">Login</button>
+                    <section class="copy legal">
+                        <!-- ... (existing fields) ... -->
+                    </section>
+                </form>
+            </div>
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script>
+             $(document).ready(function() {
+            $("#login_form").submit(function(e) {
+                console.log("Submitted")
+                e.preventDefault(); // Prevent default form submission
+
+                // Get form data 
+                const formData = {
+                    username: $("#id_username").val(),
+                    password: $("#id_password").val(),
+                };
+
+                
+                // Send AJAX request
+                $.ajax({
+                    url: "https://yenda-user-api.onrender.com/api/v1/auth/login",
+                    type: "POST",
+                    contentType: "application/json", 
+                    data: JSON.stringify(formData), 
+                    success: function(response) {
+                        const user = {
+                        name: response.data.attributes.full_name,
+                        email: response.data.attributes.email
+                        };
+
+                        localStorage.setItem("User", JSON.stringify(user));
+                        localStorage.setItem("access", JSON.stringify(response.data.attributes.access_token))
+                        localStorage.setItem("refresh", JSON.stringify(response.data.attributes.refresh_token))
+                        console.log(response.data.attributes.full_name)
+                        // Redirect to desired URL after successful login
+                        window.location.href = "{% url 'app:dashboard' %}"; 
+                    },
+                    error: function(xhr, status, error) {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        var errors = jsonResponse.errors;
+
+                        // Clear previous error messages
+                        $(".error-message").text('');
+
+                        // Display errors next to the corresponding fields
+                        for (var field in errors) {
+                            if (errors.hasOwnProperty(field)) {
+                                var errorMessage = errors[field][0];
+                                $("#error-" + field).text(errorMessage);
+                            }
+                        }
+                    }
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>

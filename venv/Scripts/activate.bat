@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\MYUTO\OneDrive\Desktop\File Manager\Projects\Yenda API\backend\venv
+set VIRTUAL_ENV=C:\Users\MYUTO\OneDrive\Desktop\File Manager\Projects\Yenda_API\backend\venv
 
 if not defined PROMPT set PROMPT=$P$G
 

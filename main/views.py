@@ -50,26 +50,30 @@ class RegistrationAPIView(APIView):
                 errors = serializer.errors
                 return JsonResponse({'errors': errors}, status=400)  # Return JSON response with status code 400
 
+# log in test (comment out in production)
+def login(request):
+    context = {}
+    return render(request, 'login.html', context)
+
+def dashboard(request):
+    context = {}
+    return render(request, 'dashboard.html', context)
+
+############################################################
+
 class UserLogin(APIView):
     permission_classes = [AllowAnyPermission]
 
     def post(self, request):
         data = JSONParser().parse(request)
         # Validate request data using serializer
-        serializer = UserLoginSerializer(data=data)
+        serializer = UserLoginSerializer(data=data , context = {'request':request})
         if serializer.is_valid(raise_exception=True):
-            print(serializer.validated_data)
-            # Authenticate user
-            user = authenticate( username = serializer.validated_data['username'],  password = serializer.validated_data['password'])
-            if user:
-                # Authentication successful
-                return Response({'message': 'User authenticated successfully'}, status=status.HTTP_200_OK)
-            else:
-                # Authentication failed
-                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            # Serializer validation failed
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class UserUpdateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -96,3 +100,4 @@ class PasswordChangeView(APIView):
             user.save()
             return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

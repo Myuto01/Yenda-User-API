@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
+from rest_framework_simplejwt.tokens import RefreshToken
 
 def profile_pics_upload_path(instance, filename):
     # Upload to "citizen_id/username/front" or "citizen_id/username/back"
@@ -13,4 +14,16 @@ class User(AbstractUser):
     # Provide unique related names to avoid clashes
     groups = models.ManyToManyField(Group, related_name='custom_user_groups')
     user_permissions = models.ManyToManyField(Permission, related_name='custom_user_permissions')
+    
+    @property
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        
+        return {
+            'refresh':str(refresh),
+            'access':str(refresh.access_token)
+        }
 
