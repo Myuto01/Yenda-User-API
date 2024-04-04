@@ -5,10 +5,12 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 
 urlpatterns = [
-    path("api/v1/auth/user_registeration/", views.RegistrationAPIView.as_view(), name="user_registeration" ),
+    path("api/v1/auth/user_registeration", views.RegistrationAPIView.as_view(), name="user_registeration" ),
+    path("api/v1/auth/verify-otp", views.OTPVerificationView.as_view(), name="verify_otp"),
     path("api/v1/auth/login", views.UserLogin.as_view(), name="user_login" ),
-    path("user/<int:pk>/update/", views. UserUpdateView.as_view(), name="update_details" ),
+    path("user/<int:pk>/update/", views. UserDetailsUpdateView.as_view(), name="update_details" ),
     path("user/<int:pk>/change_password/", views.PasswordChangeView.as_view(), name="change_password"),
+
     path('auth/', obtain_auth_token, name='auth'),
 
     #comment out in production

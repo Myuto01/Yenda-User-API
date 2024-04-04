@@ -3,19 +3,27 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserRegistrationSerializer
 from django.http import JsonResponse
 from json import JSONDecodeError
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserUpdateSerializer, PasswordChangeSerializer
+from .serializers import (
+    UserRegistrationSerializer, 
+    UserLoginSerializer, 
+    UserDetailsUpdateSerializer,
+    PasswordChangeSerializer,
+    OTPVerificationSerializer
+)
 from rest_framework.parsers import JSONParser
 from rest_framework import views, status
 from rest_framework.response import Response
 from .validations import custom_validation, validate_username, validate_password
 from django.contrib.auth import  authenticate, login, logout
-from .models import User
+from .models import User, Code
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import DjangoModelPermissions
 from .permissions import AllowAnyPermission
+from rest_framework_simplejwt.tokens import RefreshToken
+from .utils import generate_otp_for_user_from_session  
+
 
 class RegistrationAPIView(APIView):
 
@@ -34,21 +42,69 @@ class RegistrationAPIView(APIView):
         kwargs['context'] = self.get_serializer_context()
         return self.serializer_class(*args, **kwargs)
 
-    def post(self, request):
-            data = JSONParser().parse(request)
-            print('Executed')
-            serializer = UserRegistrationSerializer(data=data)
-            if serializer.is_valid():
-                user = serializer.save()
-                # Add the user to the 'User' group
-                # group = Group.objects.get(name='User')
-                # user.groups.add(group)
 
-                #login(request, user)
-                return Response(serializer.data, status=200)
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            # Retrieve phone number from request data
+            phone_number = request.data.get('phone_number')
+            
+            # Check if phone number already exists in the database
+            if User.objects.filter(phone_number=phone_number).exists():
+                return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Store user data in the session
+            user_data = serializer.validated_data
+            request.session['temp_user_data'] = user_data
+            request.session.save()
+            
+            # Generate OTP for the user using the user data
+            otp_number = generate_otp_for_user_from_session(request)
+
+            # Print all data stored in the session
+            print("Session Data:", request.session.__dict__['_session_cache'])
+
+            # Return a response with a success message and the OTP
+            return Response({'message': 'Verification code sent. Please enter the code on the next page.', 'otp': otp_number}, status=status.HTTP_202_ACCEPTED)
+        else:
+            errors = serializer.errors
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+class OTPVerificationView(APIView):
+    def post(self, request):
+        serializer = OTPVerificationSerializer(data=request.data)
+        if serializer.is_valid():
+            # Retrieve the OTP from the serializer data
+            otp = serializer.validated_data['otp']
+
+            # Retrieve the stored OTP from the session
+            stored_otp = request.session.get('otp')
+
+            # Compare the entered OTP with the stored OTP
+            if stored_otp == otp:
+                # OTP verification successful
+                # Retrieve user data from the session
+                user_data = request.session.get('temp_user_data')
+                if not user_data:
+                    return Response({'error': 'User data not found in session'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Remove the 'password2' field from user data if present
+                user_data.pop('password2', None)
+
+                # Create the user with the provided data
+                user = User.objects.create_user(**user_data)
+
+                # Delete the temporary user data from the session
+                del request.session['temp_user_data']
+                del request.session['otp']
+                request.session.clear()
+                
+                return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
             else:
-                errors = serializer.errors
-                return JsonResponse({'errors': errors}, status=400)  # Return JSON response with status code 400
+                # Invalid OTP
+                return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # log in test (comment out in production)
 def login(request):
@@ -75,7 +131,8 @@ class UserLogin(APIView):
 
 
 
-class UserUpdateView(APIView):
+
+class UserDetailsUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk):

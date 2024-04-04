@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     "corsheaders",  
     'rest_framework_simplejwt',
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
@@ -74,7 +75,7 @@ WSGI_APPLICATION = 'YENDA_API.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': dj_database_url.config(
         # Replace this value with your local database's connection string.
@@ -82,7 +83,13 @@ DATABASES = {
         conn_max_age=600
     )
 }
-
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -129,6 +136,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+PHONENUMBER_DEFAULT_REGION = 'ZM' 
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",  # Allow requests from your development frontend
